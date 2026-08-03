@@ -1,0 +1,7 @@
+{
+  "name": "midi_udp",
+  "build": {
+    "libArchive": false
+  },
+  "dependencies": {}
+}
