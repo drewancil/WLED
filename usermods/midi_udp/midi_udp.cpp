@@ -38,8 +38,10 @@ class MidiUdpUsermod : public Usermod {
 
   public:
     void setup() override {
-      strip.addEffect(255, &mode_midi_keys,  _data_FX_MODE_MIDI_KEYS);
-      strip.addEffect(255, &mode_midi_flash, _data_FX_MODE_MIDI_FLASH);
+      strip.addEffect(255, &mode_midi_keys,    _data_FX_MODE_MIDI_KEYS);
+      strip.addEffect(255, &mode_midi_flash,   _data_FX_MODE_MIDI_FLASH);
+      strip.addEffect(255, &mode_midi_puddles, _data_FX_MODE_MIDI_PUDDLES);
+      strip.addEffect(255, &mode_midi_comet,   _data_FX_MODE_MIDI_COMET);
     }
 
     void connected() override {

@@ -52,3 +52,20 @@ inline void midiDecayTick(uint32_t deltaMs, float fastRatePerMs, float slowRateP
     n.level = (n.level > drop) ? n.level - drop : 0.0f;
   }
 }
+
+// Calls onTrigger(note) for every note that transitioned from not-held to
+// held since the last call - i.e. a fresh strike, distinct from a note
+// that's simply still being held down. `prevHeldBitmap` is a 16-byte
+// (128-bit) buffer owned by the caller (typically per-effect SEGENV.data)
+// that this updates in place; each effect instance needs its own so two
+// effects don't steal each other's "new strike" events for the same note.
+template <typename Fn>
+inline void midiForEachNewTrigger(uint8_t prevHeldBitmap[16], Fn onTrigger) {
+  for (uint16_t note = 0; note < MIDI_NUM_NOTES; note++) {
+    const bool held    = midiState.notes[note].held;
+    const bool wasHeld = (prevHeldBitmap[note >> 3] >> (note & 7)) & 1;
+    if (held && !wasHeld) onTrigger((uint8_t)note);
+    if (held) prevHeldBitmap[note >> 3] |= (uint8_t)(1 << (note & 7));
+    else      prevHeldBitmap[note >> 3] &= (uint8_t)~(1 << (note & 7));
+  }
+}
