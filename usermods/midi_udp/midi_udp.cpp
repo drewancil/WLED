@@ -18,9 +18,12 @@ class MidiUdpUsermod : public Usermod {
 
     void noteOn(uint8_t note, uint8_t velocity) {
       MidiNote &n = midiState.notes[note];
-      n.velocity  = velocity;
-      n.held      = true;
-      n.releasing = false;
+      const float target = min(velocity * 2.0f, 255.0f);
+      if (target >= n.level) { // a softer retrigger doesn't dim an already-brighter held/fading note
+        n.velocity = velocity;
+        n.level    = target;
+      }
+      n.held = true; // key is down either way, so decay stops here regardless of which value won
       midiState.lastNote       = note;
       midiState.lastVelocity   = velocity;
       midiState.lastNoteOnTime = millis();
@@ -29,11 +32,8 @@ class MidiUdpUsermod : public Usermod {
 
     void noteOff(uint8_t note) {
       MidiNote &n = midiState.notes[note];
-      if (!n.held) return; // stray/duplicate note-off; leave any fade already in progress alone
-      n.held               = false;
-      n.releasing           = true;
-      n.releasedWithSustain = midiState.sustain;
-      n.releaseTime          = millis();
+      if (!n.held) return; // stray/duplicate note-off; leave any decay already in progress alone
+      n.held = false; // level is untouched here - that's what makes release seamless
     }
 
   public:
